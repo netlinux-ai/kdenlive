@@ -61,7 +61,8 @@ jobs:
             libpango1.0-dev libvorbis-dev \
             libavformat-dev libavcodec-dev libswresample-dev libavutil-dev \
             libarchive-dev libjack-jackd2-dev \
-            python3-dev swig libv4l-dev
+            python3-dev swig libv4l-dev \
+            ladspa-sdk qt6-5compat-dev
 
       - name: Clone and build KDDockWidgets
         run: |
@@ -76,7 +77,7 @@ jobs:
 
       - name: Clone and build MLT
         run: |
-          git clone --depth 1 --branch v7.36.1 --recurse-submodules \
+          git clone --depth 1 --branch v7.34.1 --recurse-submodules \
             https://github.com/mltframework/mlt.git
           cmake -B mlt/_build mlt -GNinja \
             -DCMAKE_INSTALL_PREFIX=/usr \
@@ -166,7 +167,7 @@ jobs:
           body: |
             Automated build from commit ${{ github.sha }}
 
-            Kdenlive 25.12.2 with bundled MLT 7.36.1 and KDDockWidgets 2.3.0.
+            Kdenlive 25.12.2 with bundled MLT 7.34.1 and KDDockWidgets 2.3.0.
 
             Install: `sudo dpkg -i kdenlive_*.deb`
           files: kdenlive_*.deb
