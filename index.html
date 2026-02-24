@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kdenlive - NetLinux Packages</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    max-width: 720px; margin: 2rem auto; padding: 0 1rem;
+    line-height: 1.6; color: #222; background: #fafafa;
+  }
+  h1 { margin-bottom: 0.25rem; }
+  h2 { margin-top: 2rem; border-bottom: 1px solid #ddd;
+    padding-bottom: 0.25rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+  th, td { text-align: left; padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd; }
+  th { background: #f0f0f0; width: 10rem; }
+  code, pre { background: #f0f0f0; border-radius: 3px; }
+  code { padding: 0.15em 0.3em; font-size: 0.9em; }
+  pre { padding: 1rem; overflow-x: auto; }
+  pre code { padding: 0; background: none; }
+  a { color: #0366d6; }
+  .breadcrumb { font-size: 0.9em; color: #666; margin-bottom: 1rem; }
+  .breadcrumb a { color: #666; }
+  .why { background: #e8f5e9; border: 1px solid #a5d6a7;
+    border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+  .why h3 { margin: 0 0 0.5rem 0; color: #2e7d32; font-size: 1rem; }
+  .why ul { margin: 0.5rem 0 0 1.25rem; padding: 0; }
+  .why li { margin: 0.3rem 0; }
+  .compare { font-size: 0.9em; }
+  .compare td:first-child { font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="breadcrumb">
+  <a href="https://packages.netlinux.co.uk/">NetLinux Packages</a>
+    / kdenlive
+</div>
+<h1>kdenlive</h1>
+<p>Kdenlive 25.12 &mdash; free and open source video editor based on MLT Framework and KDE Frameworks, with bundled MLT 7.36.1.</p>
+
+<div class="why">
+<h3>Why this build?</h3>
+<p>Ubuntu 24.04 ships <strong>Kdenlive 23.08.3</strong>, a KDE Frameworks 5 /
+Qt5 build that is now two major release series behind upstream. This build
+provides <strong>Kdenlive 25.12.2</strong> (February 2026), a substantial
+upgrade:</p>
+<ul>
+  <li><strong>KF5/Qt5 &rarr; KF6/Qt6</strong> &mdash; modern toolkit with
+    improved Wayland support, better HiDPI scaling, and native platform
+    integration</li>
+  <li><strong>New docking system</strong> &mdash; KDDockWidgets replaces the
+    legacy panel system, making workspace layout rearrangement far easier</li>
+  <li><strong>Enhanced audio display</strong> &mdash; waveform overview in the
+    clip monitor for precise audio editing</li>
+  <li><strong>Improved effects engine</strong> &mdash; faster rendering,
+    new effects, and better keyframe handling</li>
+  <li><strong>Nested timelines</strong> &mdash; sequence clips allow embedding
+    timelines within timelines for complex project organisation</li>
+  <li><strong>Speech-to-text</strong> &mdash; integrated subtitle generation
+    from audio tracks</li>
+  <li><strong>MLT 7.36.1</strong> &mdash; bundled multimedia framework with
+    OpenCV integration, vidstab stabilisation, and frei0r effects (Ubuntu
+    24.04 ships MLT 7.22 which lacks many of these features)</li>
+  <li><strong>Two years of bug fixes</strong> &mdash; hundreds of stability
+    improvements, crash fixes, and workflow enhancements since 23.08</li>
+</ul>
+</div>
+
+<h2>Compared to the distro version</h2>
+<table class="compare">
+  <tr><td>Feature</td><td>Ubuntu 24.04 (23.08.3)</td><td>NetLinux (25.12.2)</td></tr>
+  <tr><td>Toolkit</td><td>Qt5 / KF5</td><td>Qt6 / KF6</td></tr>
+  <tr><td>Wayland support</td><td>Limited</td><td>Full (native Qt6)</td></tr>
+  <tr><td>HiDPI support</td><td>Basic</td><td>Full</td></tr>
+  <tr><td>Docking system</td><td>Legacy Qt docks</td><td>KDDockWidgets</td></tr>
+  <tr><td>Nested timelines</td><td>No</td><td>Yes (sequence clips)</td></tr>
+  <tr><td>Speech-to-text</td><td>No</td><td>Yes</td></tr>
+  <tr><td>Audio waveform overview</td><td>No</td><td>Yes</td></tr>
+  <tr><td>MLT version</td><td>7.22</td><td>7.36.1 (bundled)</td></tr>
+  <tr><td>OpenCV effects</td><td>Limited</td><td>Full (motion tracker, etc.)</td></tr>
+</table>
+
+<h2>Package details</h2>
+<table>
+  <tr><th>Version</th><td>25.12.2-1netlinux1</td></tr>
+  <tr><th>Architecture</th><td>amd64</td></tr>
+  <tr><th>Component</th><td>main</td></tr>
+  <tr><th>Upstream</th><td><a href="https://github.com/netlinux-ai/kdenlive">github.com/netlinux-ai/kdenlive</a></td></tr>
+  <tr><th>Kdenlive source</th><td><a href="https://invent.kde.org/multimedia/kdenlive/-/tree/v25.12.2">KDE Invent (v25.12.2)</a></td></tr>
+  <tr><th>MLT source</th><td><a href="https://github.com/mltframework/mlt/tree/v7.36.1">mltframework/mlt (v7.36.1)</a></td></tr>
+</table>
+<h2>Install</h2>
+<pre><code>sudo apt install kdenlive</code></pre>
+<p>See <a href="https://packages.netlinux.co.uk/">the main page</a>
+  for repository setup instructions.</p>
+</body>
+</html>
