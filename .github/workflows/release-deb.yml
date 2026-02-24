@@ -76,7 +76,7 @@ jobs:
 
       - name: Clone and build MLT
         run: |
-          git clone --depth 1 --branch v7.36.1 \
+          git clone --depth 1 --branch v7.36.1 --recurse-submodules \
             https://github.com/mltframework/mlt.git
           cmake -B mlt/_build mlt -GNinja \
             -DCMAKE_INSTALL_PREFIX=/usr \
