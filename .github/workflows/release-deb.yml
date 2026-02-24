@@ -109,7 +109,8 @@ jobs:
             -DKDE_INSTALL_USE_QT_SYS_PATHS=ON \
             -DRELEASE_BUILD=ON \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_TESTING=OFF
+            -DBUILD_TESTING=OFF \
+            -DFETCH_OTIO=ON
           ninja -C kdenlive/_build
           sudo DESTDIR=/tmp/staging ninja -C kdenlive/_build install
 
