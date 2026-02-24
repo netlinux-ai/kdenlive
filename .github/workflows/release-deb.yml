@@ -23,18 +23,28 @@ jobs:
           sudo apt-get clean
           df -h /
 
+      - name: Add KDE Neon repository for KF6/Qt6
+        run: |
+          curl -fsSL https://archive.neon.kde.org/public.key \
+            | sudo gpg --dearmor -o /usr/share/keyrings/neon-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/neon-archive-keyring.gpg] \
+            https://archive.neon.kde.org/user noble main" \
+            | sudo tee /etc/apt/sources.list.d/kde-neon.list
+          # Pin KDE Neon packages higher so KF6/Qt6 are preferred
+          cat <<'PIN' | sudo tee /etc/apt/preferences.d/kde-neon
+          Package: *
+          Pin: origin archive.neon.kde.org
+          Pin-Priority: 550
+          PIN
+
       - name: Install build dependencies
         run: |
-          sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
-          sudo add-apt-repository -y ppa:kubuntu-ppa/backports-extra
           sudo apt-get update
-          sudo apt-get build-dep -y kdenlive
           sudo apt-get install -y \
             checkinstall cmake extra-cmake-modules ninja-build \
             qt6-base-dev qt6-svg-dev qt6-multimedia-dev qt6-networkauth-dev \
             qt6-declarative-dev qt6-declarative-private-dev \
             qml6-module-qtqml-workerscript qml6-module-qtquick-window \
-            qml6-module-org-kde-desktop \
             libkf6archive-dev libkf6bookmarks-dev libkf6config-dev \
             libkf6configwidgets-dev libkf6coreaddons-dev libkf6crash-dev \
             libkf6dbusaddons-dev libkf6doctools-dev libkf6filemetadata-dev \
