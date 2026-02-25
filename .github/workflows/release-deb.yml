@@ -42,7 +42,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            checkinstall cmake extra-cmake-modules ninja-build \
+            checkinstall cmake extra-cmake-modules ninja-build patchelf \
             qt6-base-dev qt6-svg-dev qt6-multimedia-dev qt6-networkauth-dev \
             qt6-declarative-dev qt6-declarative-private-dev \
             qml6-module-qtqml-workerscript qml6-module-qtquick-window \
@@ -75,7 +75,6 @@ jobs:
             -DKDDockWidgets_FRONTENDS=qtwidgets
           ninja -C KDDockWidgets/_build
           sudo ninja -C KDDockWidgets/_build install
-          sudo DESTDIR=/tmp/staging ninja -C KDDockWidgets/_build install
 
       - name: Clone and build MLT
         run: |
@@ -88,7 +87,6 @@ jobs:
             -DMOD_KDENLIVE=ON -DSWIG_PYTHON=ON -DMOD_OPENCV=ON
           ninja -C mlt/_build
           sudo ninja -C mlt/_build install
-          sudo DESTDIR=/tmp/staging ninja -C mlt/_build install
 
       - name: Clone Kdenlive
         run: |
@@ -114,49 +112,75 @@ jobs:
             -DBUILD_TESTING=OFF \
             -DFETCH_OTIO=ON
           ninja -C kdenlive/_build
-          sudo DESTDIR=/tmp/staging ninja -C kdenlive/_build install
 
-      - name: Bundle KF6 and Qt6 runtime libraries
+      - name: Assemble staging directory
         run: |
-          STAGING_LIBS=/tmp/staging/usr/lib
-          sudo mkdir -p "$STAGING_LIBS/x86_64-linux-gnu"
+          STAGING=/tmp/staging
+          PRIVLIB="$STAGING/usr/lib/x86_64-linux-gnu/kdenlive"
 
-          # Copy KF6 libraries
+          # Install kdenlive to staging
+          sudo DESTDIR=$STAGING ninja -C kdenlive/_build install
+
+          # Install MLT to staging
+          sudo DESTDIR=$STAGING ninja -C mlt/_build install
+
+          # Install KDDockWidgets to staging
+          sudo DESTDIR=$STAGING ninja -C KDDockWidgets/_build install
+
+          # Create private lib directory for KF6/Qt6 from Neon
+          sudo mkdir -p "$PRIVLIB"
+
+          # Bundle KF6 shared libraries
           for lib in /usr/lib/x86_64-linux-gnu/libKF6*.so*; do
             [ -f "$lib" ] || continue
-            sudo cp -a "$lib" "$STAGING_LIBS/x86_64-linux-gnu/"
+            sudo cp -a "$lib" "$PRIVLIB/"
           done
 
-          # Copy KDDockWidgets libraries
-          for lib in /usr/lib/x86_64-linux-gnu/libkddockwidgets-qt6*.so*; do
-            [ -f "$lib" ] || continue
-            sudo cp -a "$lib" "$STAGING_LIBS/x86_64-linux-gnu/"
-          done
-
-          # Copy Qt6 libraries from Neon
+          # Bundle Qt6 shared libraries from Neon
           for lib in /usr/lib/x86_64-linux-gnu/libQt6*.so*; do
             [ -f "$lib" ] || continue
-            sudo cp -a "$lib" "$STAGING_LIBS/x86_64-linux-gnu/"
+            sudo cp -a "$lib" "$PRIVLIB/"
           done
 
-          # Copy Qt6 QML modules and plugins needed at runtime
-          for dir in /usr/lib/x86_64-linux-gnu/qt6/plugins \
-                     /usr/lib/x86_64-linux-gnu/qt6/qml; do
-            if [ -d "$dir" ]; then
-              sudo mkdir -p "$STAGING_LIBS/x86_64-linux-gnu/qt6"
-              sudo cp -a "$dir" "$STAGING_LIBS/x86_64-linux-gnu/qt6/"
-            fi
-          done
+          # Bundle Qt6 plugins into private dir
+          if [ -d /usr/lib/x86_64-linux-gnu/qt6/plugins ]; then
+            sudo mkdir -p "$PRIVLIB/qt6"
+            sudo cp -a /usr/lib/x86_64-linux-gnu/qt6/plugins "$PRIVLIB/qt6/"
+          fi
 
-          # Copy KF6 plugins and data
+          # Bundle Qt6 QML modules into private dir
+          if [ -d /usr/lib/x86_64-linux-gnu/qt6/qml ]; then
+            sudo cp -a /usr/lib/x86_64-linux-gnu/qt6/qml "$PRIVLIB/qt6/"
+          fi
+
+          # Bundle KF6 plugins
           for dir in /usr/lib/x86_64-linux-gnu/qt6/plugins/kf6; do
             if [ -d "$dir" ]; then
-              sudo cp -a "$dir" "$STAGING_LIBS/x86_64-linux-gnu/qt6/plugins/"
+              sudo cp -a "$dir" "$PRIVLIB/qt6/plugins/"
             fi
           done
 
-          echo "Bundled library count:"
-          find "$STAGING_LIBS" -name '*.so*' | wc -l
+          # Rename the real binary and create a wrapper script
+          sudo mv "$STAGING/usr/bin/kdenlive" "$STAGING/usr/bin/kdenlive.real"
+          cat <<'WRAPPER' | sudo tee "$STAGING/usr/bin/kdenlive"
+          #!/bin/sh
+          KDENLIVE_PRIVLIB=/usr/lib/x86_64-linux-gnu/kdenlive
+          export LD_LIBRARY_PATH="$KDENLIVE_PRIVLIB:$LD_LIBRARY_PATH"
+          export QT_PLUGIN_PATH="$KDENLIVE_PRIVLIB/qt6/plugins:$QT_PLUGIN_PATH"
+          export QML2_IMPORT_PATH="$KDENLIVE_PRIVLIB/qt6/qml:$QML2_IMPORT_PATH"
+          exec /usr/bin/kdenlive.real "$@"
+          WRAPPER
+          sudo chmod 755 "$STAGING/usr/bin/kdenlive"
+
+          # Set RPATH on the real binary and MLT modules
+          sudo patchelf --set-rpath '$ORIGIN/../lib/x86_64-linux-gnu/kdenlive:/usr/lib/x86_64-linux-gnu' \
+            "$STAGING/usr/bin/kdenlive.real" || true
+
+          echo "Staging size:"
+          du -sh $STAGING/usr/
+
+          echo "Private lib count:"
+          find "$PRIVLIB" -name '*.so*' | wc -l
 
       - name: Determine version
         id: version
@@ -175,9 +199,7 @@ jobs:
             --requires="ffmpeg,mediainfo,frei0r-plugins,breeze-icon-theme,\
           libglib2.0-0t64,libgl1,libegl1,libx11-6,libxkbcommon0,\
           libfontconfig1,libfreetype6,libpng16-16t64,libjpeg8,\
-          libavformat60,libavcodec60,libavutil58,libswresample4,\
-          libswscale7,libfftw3-double3,libsdl2-2.0-0,libxml2,\
-          libopencv-core406t64,libvidstab1.1" \
+          libfftw3-double3,libsdl2-2.0-0,libxml2" \
             --pakdir=. \
             --install=no \
             --fstrans=no \
@@ -213,7 +235,7 @@ jobs:
             Automated build from commit ${{ github.sha }}
 
             Kdenlive 25.12.2 with bundled MLT 7.34.1, KDDockWidgets 2.3.0,
-            and KDE Frameworks 6 runtime libraries.
+            and KDE Frameworks 6 / Qt6 runtime libraries.
 
             Install: `sudo dpkg -i kdenlive_*.deb`
           files: kdenlive_*.deb
