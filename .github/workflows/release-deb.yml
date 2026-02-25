@@ -177,7 +177,7 @@ jobs:
           libfontconfig1,libfreetype6,libpng16-16t64,libjpeg8,\
           libavformat60,libavcodec60,libavutil58,libswresample4,\
           libswscale7,libfftw3-double3,libsdl2-2.0-0,libxml2,\
-          libopencv-core406t,libvidstab1.2" \
+          libopencv-core406t64,libvidstab1.1" \
             --pakdir=. \
             --install=no \
             --fstrans=no \
