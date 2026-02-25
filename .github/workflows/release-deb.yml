@@ -118,58 +118,40 @@ jobs:
 
       - name: Bundle KF6 and Qt6 runtime libraries
         run: |
-          # Find all shared libraries that kdenlive and MLT link against
-          # that come from KDE Neon (not available in stock Ubuntu 24.04)
           STAGING_LIBS=/tmp/staging/usr/lib
-          mkdir -p "$STAGING_LIBS/x86_64-linux-gnu"
-
-          # Collect all .so files from our built binaries
-          BINS=$(find /tmp/staging/usr -type f \( -name '*.so*' -o -name 'kdenlive' \) 2>/dev/null)
-
-          # Find all KF6, KDDockWidgets, and Neon Qt6 libraries needed
-          NEEDED_LIBS=$(for b in $BINS; do
-            ldd "$b" 2>/dev/null
-          done | grep -E 'libKF6|libKDDockWidgets|/neon/' \
-               | awk '{print $3}' | sort -u | grep -v 'not found' || true)
-
-          # Also resolve any KF6/Qt6 libs from the system that aren't in Ubuntu 24.04
-          SYSTEM_KF6=$(for b in $BINS; do
-            ldd "$b" 2>/dev/null
-          done | grep -oP '/usr/lib/\S+' | sort -u \
-               | xargs -I{} dpkg -S {} 2>/dev/null \
-               | grep -E 'neon|kf6' | awk -F: '{print $2}' | sort -u || true)
+          sudo mkdir -p "$STAGING_LIBS/x86_64-linux-gnu"
 
           # Copy KF6 libraries
           for lib in /usr/lib/x86_64-linux-gnu/libKF6*.so*; do
             [ -f "$lib" ] || continue
-            cp -a "$lib" "$STAGING_LIBS/x86_64-linux-gnu/"
+            sudo cp -a "$lib" "$STAGING_LIBS/x86_64-linux-gnu/"
           done
 
-          # Copy KDDockWidgets libraries (in case DESTDIR missed symlinks)
+          # Copy KDDockWidgets libraries
           for lib in /usr/lib/x86_64-linux-gnu/libkddockwidgets-qt6*.so*; do
             [ -f "$lib" ] || continue
-            cp -a "$lib" "$STAGING_LIBS/x86_64-linux-gnu/"
+            sudo cp -a "$lib" "$STAGING_LIBS/x86_64-linux-gnu/"
           done
 
-          # Copy Qt6 libraries from Neon that differ from Ubuntu stock
+          # Copy Qt6 libraries from Neon
           for lib in /usr/lib/x86_64-linux-gnu/libQt6*.so*; do
             [ -f "$lib" ] || continue
-            cp -a "$lib" "$STAGING_LIBS/x86_64-linux-gnu/"
+            sudo cp -a "$lib" "$STAGING_LIBS/x86_64-linux-gnu/"
           done
 
           # Copy Qt6 QML modules and plugins needed at runtime
           for dir in /usr/lib/x86_64-linux-gnu/qt6/plugins \
                      /usr/lib/x86_64-linux-gnu/qt6/qml; do
             if [ -d "$dir" ]; then
-              mkdir -p "$STAGING_LIBS/x86_64-linux-gnu/qt6"
-              cp -a "$dir" "$STAGING_LIBS/x86_64-linux-gnu/qt6/"
+              sudo mkdir -p "$STAGING_LIBS/x86_64-linux-gnu/qt6"
+              sudo cp -a "$dir" "$STAGING_LIBS/x86_64-linux-gnu/qt6/"
             fi
           done
 
           # Copy KF6 plugins and data
           for dir in /usr/lib/x86_64-linux-gnu/qt6/plugins/kf6; do
             if [ -d "$dir" ]; then
-              cp -a "$dir" "$STAGING_LIBS/x86_64-linux-gnu/qt6/plugins/"
+              sudo cp -a "$dir" "$STAGING_LIBS/x86_64-linux-gnu/qt6/plugins/"
             fi
           done
 
